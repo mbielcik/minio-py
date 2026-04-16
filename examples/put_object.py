@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,92 +20,106 @@ from urllib.request import urlopen
 
 from examples.progress import Progress
 from minio import Minio
-from minio.commonconfig import GOVERNANCE, Tags
-from minio.retention import Retention
+from minio.models import Retention, Tags
 from minio.sse import SseCustomerKey, SseKMS, SseS3
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
 # Upload data.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload unknown sized data.
-data = urlopen(
+with urlopen(
     "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.81.tar.xz",
-)
-result = client.put_object(
-    "my-bucket", "my-object", data, length=-1, part_size=10*1024*1024,
-)
-print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
-)
+) as data:
+    result = client.put_object(
+        bucket_name="my-bucket",
+        object_name="my-object",
+        data=data,
+        length=-1,
+        part_size=10*1024*1024,
+    )
+    print(
+        f"created {result.object_name} object; etag: {result.etag}, "
+        f"version-id: {result.version_id}",
+    )
 
 # Upload data with content-type.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
     content_type="application/csv",
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload data with metadata.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
-    metadata={"My-Project": "one"},
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
+    user_metadata={"My-Project": "one"},
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload data with customer key type of server-side encryption.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
     sse=SseCustomerKey(b"32byteslongsecretkeymustprovided"),
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload data with KMS type of server-side encryption.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
     sse=SseKMS("KMS-KEY-ID", {"Key1": "Value1", "Key2": "Value2"}),
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload data with S3 type of server-side encryption.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
     sse=SseS3(),
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload data with tags, retention and legal-hold.
@@ -115,24 +129,28 @@ date = datetime.utcnow().replace(
 tags = Tags(for_object=True)
 tags["User"] = "jsmith"
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
     tags=tags,
-    retention=Retention(GOVERNANCE, date),
+    retention=Retention(Retention.GOVERNANCE, date),
     legal_hold=True,
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )
 
 # Upload data with progress bar.
 result = client.put_object(
-    "my-bucket", "my-object", io.BytesIO(b"hello"), 5,
+    bucket_name="my-bucket",
+    object_name="my-object",
+    data=io.BytesIO(b"hello"),
+    length=5,
     progress=Progress(),
 )
 print(
-    "created {0} object; etag: {1}, version-id: {2}".format(
-        result.object_name, result.etag, result.version_id,
-    ),
+    f"created {result.object_name} object; etag: {result.etag}, "
+    f"version-id: {result.version_id}",
 )

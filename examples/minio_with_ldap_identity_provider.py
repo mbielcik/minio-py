@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,10 +27,14 @@ ldap_username = "LDAP-USERNAME"
 # LDAP password.
 ldap_password = "LDAP-PASSWORD"
 
-provider = LdapIdentityProvider(sts_endpoint, ldap_username, ldap_password)
+provider = LdapIdentityProvider(
+    sts_endpoint=sts_endpoint,
+    ldap_username=ldap_username,
+    ldap_password=ldap_password,
+)
 
-client = Minio("MINIO-HOST:MINIO-PORT", credentials=provider)
+client = Minio(endpoint="MINIO-HOST:MINIO-PORT", credentials=provider)
 
 # Get information of an object.
-stat = client.stat_object("my-bucket", "my-object")
+stat = client.stat_object(bucket_name="my-bucket", object_name="my-object")
 print(stat)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,47 +18,59 @@ from minio import Minio
 from minio.sse import SseCustomerKey
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
 # Get data of an object.
-try:
-    response = client.get_object("my-bucket", "my-object")
-    # Read data from response.
-finally:
-    response.close()
-    response.release_conn()
-
-# Get data of an object of version-ID.
+response = None
 try:
     response = client.get_object(
-        "my-bucket", "my-object",
+        bucket_name="my-bucket",
+        object_name="my-object",
+    )
+    # Read data from response.
+finally:
+    if response:
+        response.close()
+
+# Get data of an object of version-ID.
+response = None
+try:
+    response = client.get_object(
+        bucket_name="my-bucket",
+        object_name="my-object",
         version_id="dfbd25b3-abec-4184-a4e8-5a35a5c1174d",
     )
     # Read data from response.
 finally:
-    response.close()
-    response.release_conn()
+    if response:
+        response.close()
 
 # Get data of an object from offset and length.
+response = None
 try:
     response = client.get_object(
-        "my-bucket", "my-object", offset=512, length=1024,
+        bucket_name="my-bucket",
+        object_name="my-object",
+        offset=512,
+        length=1024,
     )
     # Read data from response.
 finally:
-    response.close()
-    response.release_conn()
+    if response:
+        response.close()
 
 # Get data of an SSE-C encrypted object.
+response = None
 try:
     response = client.get_object(
-        "my-bucket", "my-object",
+        bucket_name="my-bucket",
+        object_name="my-object",
         ssec=SseCustomerKey(b"32byteslongsecretkeymustprovided"),
     )
     # Read data from response.
 finally:
-    response.close()
-    response.release_conn()
+    if response:
+        response.close()

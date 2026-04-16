@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 
 import json
-from unittest import TestCase
-
-import unittest.mock as mock
+from unittest import TestCase, mock
 
 from minio import Minio
-from minio.api import _DEFAULT_USER_AGENT
 from minio.error import S3Error
+from minio.helpers import _DEFAULT_USER_AGENT
 from tests.unit.minio_mocks import MockConnection, MockResponse
 
 
@@ -49,8 +47,9 @@ class GetBucketPolicyTest(TestCase):
                 content=error.encode()
             )
         )
-        client = Minio('localhost:9000')
-        self.assertRaises(S3Error, client.get_bucket_policy, bucket_name)
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(S3Error):
+            client.get_bucket_policy(bucket_name=bucket_name)
 
     @mock.patch('urllib3.PoolManager')
     def test_get_policy_for_existent_bucket(self, mock_connection):
@@ -92,6 +91,6 @@ class GetBucketPolicyTest(TestCase):
                 content=mock_data
             )
         )
-        client = Minio('localhost:9000')
-        response = client.get_bucket_policy(bucket_name)
+        client = Minio(endpoint='localhost:9000')
+        response = client.get_bucket_policy(bucket_name=bucket_name)
         self.assertEqual(response, mock_data.decode())

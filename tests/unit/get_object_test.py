@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import TestCase
-
-import unittest.mock as mock
+from unittest import TestCase, mock
 
 from minio import Minio
-from minio.api import _DEFAULT_USER_AGENT
 from minio.error import S3Error
+from minio.helpers import _DEFAULT_USER_AGENT
 
 from .helpers import generate_error
 from .minio_mocks import MockConnection, MockResponse
@@ -28,12 +26,14 @@ from .minio_mocks import MockConnection, MockResponse
 
 class GetObjectTest(TestCase):
     def test_object_is_string(self):
-        client = Minio('localhost:9000')
-        self.assertRaises(TypeError, client.get_object, 'hello', 1234)
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(TypeError):
+            client.get_object(bucket_name='hello', object_name=1234)
 
     def test_object_is_not_empty_string(self):
-        client = Minio('localhost:9000')
-        self.assertRaises(ValueError, client.get_object, 'hello', ' \t \n ')
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(ValueError):
+            client.get_object(bucket_name='hello', object_name=' \t \n ')
 
     @mock.patch('urllib3.PoolManager')
     def test_get_object_throws_fail(self, mock_connection):
@@ -50,5 +50,6 @@ class GetObjectTest(TestCase):
                          response_headers={"Content-Type": "application/xml"},
                          content=error_xml.encode())
         )
-        client = Minio('localhost:9000')
-        self.assertRaises(S3Error, client.get_object, 'hello', 'key')
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(S3Error):
+            client.get_object(bucket_name='hello', object_name='key')

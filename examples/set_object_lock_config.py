@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage.
-# Copyright (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,14 +15,17 @@
 # limitations under the License.
 
 from minio import Minio
-from minio.commonconfig import GOVERNANCE
-from minio.objectlockconfig import DAYS, ObjectLockConfig
+from minio.models import ObjectLockConfig
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
-config = ObjectLockConfig(GOVERNANCE, 15, DAYS)
-client.set_object_lock_config("my-bucket", config)
+config = ObjectLockConfig(
+    mode=ObjectLockConfig.GOVERNANCE,
+    duration=15,
+    duration_unit=ObjectLockConfig.DAYS,
+)
+client.set_object_lock_config(bucket_name="my-bucket", config=config)

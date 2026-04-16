@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +15,10 @@
 # limitations under the License.
 
 from datetime import datetime, timezone
-from unittest import TestCase
-
-import unittest.mock as mock
+from unittest import TestCase, mock
 
 from minio import Minio
-from minio.api import _DEFAULT_USER_AGENT
+from minio.helpers import _DEFAULT_USER_AGENT
 
 from .minio_mocks import MockConnection, MockResponse
 
@@ -35,16 +33,16 @@ class ListBucketsTest(TestCase):
         mock_server = MockConnection()
         mock_connection.return_value = mock_server
         mock_server.mock_add_request(
-            MockResponse('GET', 'https://localhost:9000/',
-                         {'User-Agent': _DEFAULT_USER_AGENT},
-                         200, content=mock_data.encode())
+            MockResponse(
+                'GET',
+                'https://localhost:9000/?max-buckets=10000',
+                {'User-Agent': _DEFAULT_USER_AGENT},
+                200,
+                content=mock_data.encode(),
+            ),
         )
-        client = Minio('localhost:9000')
-        buckets = client.list_buckets()
-        count = 0
-        for bucket in buckets:
-            count += 1
-        self.assertEqual(0, count)
+        client = Minio(endpoint='localhost:9000')
+        self.assertEqual(0, len(list(client.list_buckets())))
 
     @mock.patch('urllib3.PoolManager')
     def test_list_buckets_works(self, mock_connection):
@@ -60,25 +58,24 @@ class ListBucketsTest(TestCase):
         mock_server = MockConnection()
         mock_connection.return_value = mock_server
         mock_server.mock_add_request(
-            MockResponse('GET', 'https://localhost:9000/',
-                         {'User-Agent': _DEFAULT_USER_AGENT},
-                         200, content=mock_data.encode())
+            MockResponse(
+                'GET',
+                'https://localhost:9000/?max-buckets=10000',
+                {'User-Agent': _DEFAULT_USER_AGENT},
+                200,
+                content=mock_data.encode(),
+            ),
         )
-        client = Minio('localhost:9000')
-        buckets = client.list_buckets()
-        buckets_list = []
-        count = 0
-        for bucket in buckets:
-            count += 1
-            buckets_list.append(bucket)
-        self.assertEqual(2, count)
-        self.assertEqual('hello', buckets_list[0].name)
+        client = Minio(endpoint='localhost:9000')
+        buckets = list(client.list_buckets())
+        self.assertEqual(2, len(buckets))
+        self.assertEqual('hello', buckets[0].name)
         self.assertEqual(
             datetime(2015, 6, 22, 23, 7, 43, 240000, timezone.utc),
-            buckets_list[0].creation_date,
+            buckets[0].creation_date,
         )
-        self.assertEqual('world', buckets_list[1].name)
+        self.assertEqual('world', buckets[1].name)
         self.assertEqual(
             datetime(2015, 6, 22, 23, 7, 56, 766000, timezone.utc),
-            buckets_list[1].creation_date,
+            buckets[1].creation_date,
         )

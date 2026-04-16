@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015-2019 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,21 +16,14 @@
 
 # pylint: disable=too-many-lines
 
-"""
-minio.error
-~~~~~~~~~~~~~~~~~~~
+"""SDK exceptions."""
 
-This module provides custom exception classes for MinIO library
-and API specific errors.
+from __future__ import annotations
 
-:copyright: (c) 2015, 2016, 2017 by MinIO, Inc.
-:license: Apache 2.0, see LICENSE for more details.
+from typing import Optional, Type
 
-"""
-
-from xml.etree import ElementTree as ET
-
-from .xml import findtext
+from .compat import HTTPResponse
+from .xml import ET, findtext
 
 
 class MinioException(Exception):
@@ -40,13 +33,15 @@ class MinioException(Exception):
 class InvalidResponseError(MinioException):
     """Raised to indicate that non-xml response from server."""
 
-    def __init__(self, code, content_type, body):
+    def __init__(
+            self, code: int, content_type: Optional[str], body: Optional[str],
+    ):
         self._code = code
         self._content_type = content_type
         self._body = body
         super().__init__(
-            f"non-XML response from server; "
-            f"Response code: {code}, Content-Type: {content_type}, Body: {body}"
+            f"non-XML response from server; Response code: {code}, "
+            f"Content-Type: {content_type}, Body: {body}"
         )
 
     def __reduce__(self):
@@ -56,12 +51,12 @@ class InvalidResponseError(MinioException):
 class ServerError(MinioException):
     """Raised to indicate that S3 service returning HTTP server error."""
 
-    def __init__(self, message, status_code):
+    def __init__(self, message: str, status_code: int):
         self._status_code = status_code
         super().__init__(message)
 
     @property
-    def status_code(self):
+    def status_code(self) -> int:
         """Get HTTP status code."""
         return self._status_code
 
@@ -71,76 +66,143 @@ class S3Error(MinioException):
     Raised to indicate that error response is received
     when executing S3 operation.
     """
+    response: HTTPResponse
+    code: Optional[str]
+    message: Optional[str]
+    resource: Optional[str]
+    request_id: Optional[str]
+    host_id: Optional[str]
+    bucket_name: Optional[str]
+    object_name: Optional[str]
 
-    def __init__(self, code, message, resource, request_id, host_id,
-                 response, bucket_name=None, object_name=None):
-        self._code = code
-        self._message = message
-        self._resource = resource
-        self._request_id = request_id
-        self._host_id = host_id
-        self._response = response
-        self._bucket_name = bucket_name
-        self._object_name = object_name
+    _EXC_MUTABLES = {"__traceback__", "__context__", "__cause__"}
 
-        bucket_message = (
-            (", bucket_name: " + self._bucket_name)
-            if self._bucket_name else ""
-        )
-        object_message = (
-            (", object_name: " + self._object_name)
-            if self._object_name else ""
-        )
+    def __init__(  # pylint: disable=too-many-positional-arguments
+        self,
+        response: HTTPResponse,
+        code: Optional[str],
+        message: Optional[str],
+        resource: Optional[str],
+        request_id: Optional[str],
+        host_id: Optional[str],
+        bucket_name: Optional[str] = None,
+        object_name: Optional[str] = None,
+    ):
+        object.__setattr__(self, "response", response)
+        object.__setattr__(self, "code", code)
+        object.__setattr__(self, "message", message)
+        object.__setattr__(self, "resource", resource)
+        object.__setattr__(self, "request_id", request_id)
+        object.__setattr__(self, "host_id", host_id)
+        object.__setattr__(self, "bucket_name", bucket_name)
+        object.__setattr__(self, "object_name", object_name)
+
+        bucket_message = f", bucket_name: {bucket_name}" if bucket_name else ""
+        object_message = f", object_name: {object_name}" if object_name else ""
+
         super().__init__(
             f"S3 operation failed; code: {code}, message: {message}, "
             f"resource: {resource}, request_id: {request_id}, "
             f"host_id: {host_id}{bucket_message}{object_message}"
         )
 
-    def __reduce__(self):
-        return type(self), (self._code, self._message, self._resource,
-                            self._request_id, self._host_id, self._response,
-                            self._bucket_name, self._object_name)
+        # freeze after init
+        object.__setattr__(self, "_is_frozen", True)
 
-    @property
-    def code(self):
-        """Get S3 error code."""
-        return self._code
+    def __setattr__(self, name, value):
+        if name in self._EXC_MUTABLES:
+            object.__setattr__(self, name, value)
+            return
+        if getattr(self, "_is_frozen", False):
+            raise AttributeError(
+                f"{self.__class__.__name__} is frozen and "
+                "does not allow attribute assignment"
+            )
+        object.__setattr__(self, name, value)
 
-    @property
-    def message(self):
-        """Get S3 error message."""
-        return self._message
-
-    @property
-    def response(self):
-        """Get HTTP response."""
-        return self._response
+    def __delattr__(self, name):
+        if name in self._EXC_MUTABLES:
+            object.__delattr__(self, name)
+            return
+        if getattr(self, "_is_frozen", False):
+            raise AttributeError(
+                f"{self.__class__.__name__} is frozen and "
+                "does not allow attribute deletion"
+            )
+        object.__delattr__(self, name)
 
     @classmethod
-    def fromxml(cls, response):
+    def new(cls: Type[S3Error], response: HTTPResponse) -> S3Error:
         """Create new object with values from XML element."""
         element = ET.fromstring(response.data.decode())
         return cls(
-            findtext(element, "Code"),
-            findtext(element, "Message"),
-            findtext(element, "Resource"),
-            findtext(element, "RequestId"),
-            findtext(element, "HostId"),
+            response=response,
+            code=findtext(element, "Code"),
+            message=findtext(element, "Message"),
+            resource=findtext(element, "Resource"),
+            request_id=findtext(element, "RequestId"),
+            host_id=findtext(element, "HostId"),
             bucket_name=findtext(element, "BucketName"),
             object_name=findtext(element, "Key"),
-            response=response,
         )
 
-    def copy(self, code, message):
-        """Make a copy with replace code and message."""
+    def copy(self, code: str, message: str) -> S3Error:
+        """Make a copy with replaced code and message."""
         return S3Error(
-            code,
-            message,
-            self._resource,
-            self._request_id,
-            self._host_id,
-            self._response,
-            self._bucket_name,
-            self._object_name,
+            response=self.response,
+            code=code,
+            message=message,
+            resource=self.resource,
+            request_id=self.request_id,
+            host_id=self.host_id,
+            bucket_name=self.bucket_name,
+            object_name=self.object_name,
         )
+
+    def __repr__(self):
+        return (
+            f"S3Error(code={self.code!r}, message={self.message!r}, "
+            f"resource={self.resource!r}, request_id={self.request_id!r}, "
+            f"host_id={self.host_id!r}, bucket_name={self.bucket_name!r}, "
+            f"object_name={self.object_name!r})"
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, S3Error):
+            return NotImplemented
+        return (
+            self.code == other.code
+            and self.message == other.message
+            and self.resource == other.resource
+            and self.request_id == other.request_id
+            and self.host_id == other.host_id
+            and self.bucket_name == other.bucket_name
+            and self.object_name == other.object_name
+        )
+
+    def __hash__(self):
+        return hash(
+            (
+                self.code,
+                self.message,
+                self.resource,
+                self.request_id,
+                self.host_id,
+                self.bucket_name,
+                self.object_name,
+            )
+        )
+
+
+class MinioAdminException(Exception):
+    """Raised to indicate admin API execution error."""
+
+    def __init__(self, code: str, body: str):
+        self._code = code
+        self._body = body
+        super().__init__(
+            f"admin request failed; Status: {code}, Body: {body}",
+        )
+
+    def __reduce__(self):
+        return type(self), (self._code, self._body)

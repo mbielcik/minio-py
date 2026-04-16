@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2016 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
 # limitations under the License.
 
 import itertools
-from unittest import TestCase
-
-import unittest.mock as mock
+from unittest import TestCase, mock
 
 from minio import Minio
-from minio.api import _DEFAULT_USER_AGENT
-from minio.deleteobjects import DeleteObject
+from minio.helpers import _DEFAULT_USER_AGENT
+from minio.models import DeleteRequest
 
 from .minio_mocks import MockConnection, MockResponse
 
@@ -35,13 +33,15 @@ class RemoveObjectsTest(TestCase):
             MockResponse('POST',
                          'https://localhost:9000/hello?delete=',
                          {'User-Agent': _DEFAULT_USER_AGENT,
-                          'Content-Md5': u'Te1kmIjQRNNz70DJjsrD8A=='}, 200,
+                          'Content-Md5': 'Te1kmIjQRNNz70DJjsrD8A=='}, 200,
                          content=b'<Delete/>')
         )
-        client = Minio('localhost:9000')
+        client = Minio(endpoint='localhost:9000')
         for err in client.remove_objects(
-                "hello",
-                [DeleteObject("Ab"), DeleteObject("c")],
+                bucket_name="hello",
+                objects=[
+                    DeleteRequest.Object("Ab"), DeleteRequest.Object("c"),
+                ],
         ):
             print(err)
 
@@ -53,13 +53,15 @@ class RemoveObjectsTest(TestCase):
             MockResponse('POST',
                          'https://localhost:9000/hello?delete=',
                          {'User-Agent': _DEFAULT_USER_AGENT,
-                          'Content-Md5': u'Te1kmIjQRNNz70DJjsrD8A=='}, 200,
+                          'Content-Md5': 'Te1kmIjQRNNz70DJjsrD8A=='}, 200,
                          content=b'<Delete/>')
         )
-        client = Minio('localhost:9000')
+        client = Minio(endpoint='localhost:9000')
         for err in client.remove_objects(
-                "hello",
-                (DeleteObject("Ab"), DeleteObject("c")),
+                bucket_name="hello",
+                objects=(
+                    DeleteRequest.Object("Ab"), DeleteRequest.Object("c"),
+                ),
         ):
             print(err)
 
@@ -71,10 +73,15 @@ class RemoveObjectsTest(TestCase):
             MockResponse('POST',
                          'https://localhost:9000/hello?delete=',
                          {'User-Agent': _DEFAULT_USER_AGENT,
-                          'Content-Md5': u'Te1kmIjQRNNz70DJjsrD8A=='}, 200,
+                          'Content-Md5': 'Te1kmIjQRNNz70DJjsrD8A=='}, 200,
                          content=b'<Delete/>')
         )
-        client = Minio('localhost:9000')
-        it = itertools.chain((DeleteObject("Ab"), DeleteObject("c")))
-        for err in client.remove_objects('hello', it):
+        client = Minio(endpoint='localhost:9000')
+        result = client.remove_objects(
+            bucket_name='hello',
+            objects=itertools.chain(
+                (DeleteRequest.Object("Ab"), DeleteRequest.Object("c")),
+            ),
+        )
+        for err in result:
             print(err)

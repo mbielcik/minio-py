@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015, 2016, 2017 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-minio - MinIO Python SDK for Amazon S3 Compatible Cloud Storage
+MinIO Python SDK for Amazon S3 Compatible Cloud Storage
 
     >>> from minio import Minio
     >>> client = Minio(
@@ -26,22 +26,15 @@ minio - MinIO Python SDK for Amazon S3 Compatible Cloud Storage
     >>> buckets = client.list_buckets()
     >>> for bucket in buckets:
     ...     print(bucket.name, bucket.creation_date)
-
-:copyright: (C) 2015-2020 MinIO, Inc.
-:license: Apache 2.0, see LICENSE for more details.
 """
 
 __title__ = "minio-py"
 __author__ = "MinIO, Inc."
-__version__ = "7.1.9"
+__version__ = "7.2.20"
 __license__ = "Apache 2.0"
-__copyright__ = "Copyright 2015, 2016, 2017, 2018, 2019, 2020 MinIO, Inc."
-
-import threading
-
-__LOCALE_LOCK__ = threading.Lock()
+__copyright__ = "Copyright [2014] - [2025] MinIO, Inc."
 
 # pylint: disable=unused-import
-from .api import Minio
 from .error import InvalidResponseError, S3Error, ServerError
+from .minio import Minio
 from .minioadmin import MinioAdmin
