@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015-2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
 # limitations under the License.
 
 import time
-import unittest.mock as mock
-from unittest import TestCase
+from unittest import TestCase, mock
 
 from minio import Minio
-from minio.api import _DEFAULT_USER_AGENT
+from minio.helpers import _DEFAULT_USER_AGENT
 
 from .minio_mocks import MockConnection, MockResponse
 
@@ -48,8 +47,8 @@ class ListObjectsTest(TestCase):
                 content=mock_data.encode(),
             ),
         )
-        client = Minio('localhost:9000')
-        object_iter = client.list_objects('bucket', recursive=True)
+        client = Minio(endpoint='localhost:9000')
+        object_iter = client.list_objects(bucket_name='bucket', recursive=True)
         objects = []
         for obj in object_iter:
             objects.append(obj)
@@ -92,8 +91,8 @@ class ListObjectsTest(TestCase):
                 content=mock_data.encode(),
             ),
         )
-        client = Minio('localhost:9000')
-        objects_iter = client.list_objects('bucket')
+        client = Minio(endpoint='localhost:9000')
+        objects_iter = client.list_objects(bucket_name='bucket')
         objects = []
         for obj in objects_iter:
             objects.append(obj)

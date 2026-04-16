@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 from minio import Minio
 from minio.credentials import EnvAWSProvider
 
-client = Minio("s3.amazonaws.com", credentials=EnvAWSProvider())
+client = Minio(endpoint="s3.amazonaws.com", credentials=EnvAWSProvider())
 
 # Get information of an object.
-stat = client.stat_object("my-bucket", "my-object")
+stat = client.stat_object(bucket_name="my-bucket", object_name="my-object")
 print(stat)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ policy = "POLICY"
 region = "REGION"
 
 provider = AssumeRoleProvider(
-    sts_endpoint,
-    access_key,
-    secret_key,
+    sts_endpoint=sts_endpoint,
+    access_key=access_key,
+    secret_key=secret_key,
     policy=policy,
     region=region,
     role_arn=role_arn,
@@ -53,8 +53,8 @@ provider = AssumeRoleProvider(
     external_id=external_id,
 )
 
-client = Minio("MINIO-HOST:MINIO-PORT", credentials=provider)
+client = Minio(endpoint="MINIO-HOST:MINIO-PORT", credentials=provider)
 
 # Get information of an object.
-stat = client.stat_object("my-bucket", "my-object")
+stat = client.stat_object(bucket_name="my-bucket", object_name="my-object")
 print(stat)

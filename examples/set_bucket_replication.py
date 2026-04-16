@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage.
-# Copyright (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,29 +15,27 @@
 # limitations under the License.
 
 from minio import Minio
-from minio.commonconfig import DISABLED, ENABLED, AndOperator, Filter
-from minio.replicationconfig import (DeleteMarkerReplication, Destination,
-                                     ReplicationConfig, Rule)
+from minio.models import Filter, ReplicationConfig, Status
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
 config = ReplicationConfig(
-    "REPLACE-WITH-ACTUAL-ROLE",
-    [
-        Rule(
-            Destination(
+    role="REPLACE-WITH-ACTUAL-ROLE",
+    rules=[
+        ReplicationConfig.Rule(
+            destination=ReplicationConfig.Destination(
                 "REPLACE-WITH-ACTUAL-DESTINATION-BUCKET-ARN",
             ),
-            ENABLED,
-            delete_marker_replication=DeleteMarkerReplication(
-                DISABLED,
+            status=Status.ENABLED,
+            delete_marker_replication=ReplicationConfig.DeleteMarkerReplication(
+                Status.DISABLED,
             ),
             rule_filter=Filter(
-                AndOperator(
+                Filter.And(
                     "TaxDocs",
                     {"key1": "value1", "key2": "value2"},
                 ),
@@ -47,4 +45,4 @@ config = ReplicationConfig(
         ),
     ],
 )
-client.set_bucket_replication("my-bucket", config)
+client.set_bucket_replication(bucket_name="my-bucket", config=config)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage.
-# Copyright (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,15 @@
 # limitations under the License.
 
 from minio import Minio
-from minio.commonconfig import ENABLED
-from minio.versioningconfig import VersioningConfig
+from minio.models import VersioningConfig
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
-client.set_bucket_versioning("my-bucket", VersioningConfig(ENABLED))
+client.set_bucket_versioning(
+    bucket_name="my-bucket",
+    config=VersioningConfig(VersioningConfig.ENABLED),
+)

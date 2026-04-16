@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage.
-# Copyright (C) 2020 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,23 +15,22 @@
 # limitations under the License.
 
 from minio import Minio
-from minio.notificationconfig import (NotificationConfig, PrefixFilterRule,
-                                      QueueConfig)
+from minio.models import NotificationConfig
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
 config = NotificationConfig(
     queue_config_list=[
-        QueueConfig(
-            "QUEUE-ARN-OF-THIS-BUCKET",
-            ["s3:ObjectCreated:*"],
+        NotificationConfig.QueueConfig(
+            queue="QUEUE-ARN-OF-THIS-BUCKET",
+            events=["s3:ObjectCreated:*"],
             config_id="1",
-            prefix_filter_rule=PrefixFilterRule("abc"),
+            prefix_filter_rule=NotificationConfig.PrefixFilterRule("abc"),
         ),
     ],
 )
-client.set_bucket_notification("my-bucket", config)
+client.set_bucket_notification(bucket_name="my-bucket", config=config)

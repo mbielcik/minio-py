@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015, 2016 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,5 +21,5 @@ from minio import Minio
 
 class TraceTest(TestCase):
     def test_bucket_is_string(self):
-        client = Minio('localhost:9000')
+        client = Minio(endpoint='localhost:9000')
         self.assertRaises(ValueError, client.trace_on, None)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2019 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,22 +16,25 @@
 
 
 from minio import Minio
-from minio.select import (CSVInputSerialization, CSVOutputSerialization,
-                          SelectRequest)
+from minio.models import SelectObjectContentRequest
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
 with client.select_object_content(
-        "my-bucket",
-        "my-object.csv",
-        SelectRequest(
-            "select * from S3Object",
-            CSVInputSerialization(),
-            CSVOutputSerialization(),
+        bucket_name="my-bucket",
+        object_name="my-object.csv",
+        request=SelectObjectContentRequest(
+            expression="select * from S3Object",
+            input_serialization=(
+                SelectObjectContentRequest.CSVInputSerialization()
+            ),
+            output_serialization=(
+                SelectObjectContentRequest.CSVOutputSerialization()
+            ),
             request_progress=True,
         ),
 ) as result:

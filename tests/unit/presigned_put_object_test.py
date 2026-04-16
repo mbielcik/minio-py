@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2015, 2016 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,19 +22,23 @@ from minio import Minio
 
 class PresignedPutObjectTest(TestCase):
     def test_object_is_string(self):
-        client = Minio('localhost:9000')
-        self.assertRaises(
-            TypeError, client.presigned_put_object, 'hello', 1234)
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(TypeError):
+            client.presigned_put_object(bucket_name='hello', object_name=1234)
 
     def test_object_is_not_empty_string(self):
-        client = Minio('localhost:9000')
-        self.assertRaises(
-            ValueError, client.presigned_put_object, 'hello', ' \t \n ')
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(ValueError):
+            client.presigned_put_object(
+                bucket_name='hello',
+                object_name=' \t \n ',
+            )
 
     def test_expiry_limit(self):
-        client = Minio('localhost:9000')
-        self.assertRaises(
-            ValueError,
-            client.presigned_put_object, 'hello', 'key',
-            expires=timedelta(days=8)
-        )
+        client = Minio(endpoint='localhost:9000')
+        with self.assertRaises(ValueError):
+            client.presigned_put_object(
+                bucket_name='hello',
+                object_name='key',
+                expires=timedelta(days=8),
+            )

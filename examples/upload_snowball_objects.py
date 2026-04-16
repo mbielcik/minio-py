@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# MinIO Python Library for Amazon S3 Compatible Cloud Storage,
-# (C) 2023 MinIO, Inc.
+# MinIO Python Library for Amazon S3 Compatible Cloud Storage, (C)
+# [2014] - [2025] MinIO, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,23 +18,30 @@ import io
 from datetime import datetime
 
 from minio import Minio
-from minio.commonconfig import SnowballObject
+from minio.args import SnowballObject
 
 client = Minio(
-    "play.min.io",
+    endpoint="play.min.io",
     access_key="Q3AM3UQ867SPQQA43P2F",
     secret_key="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
 )
 
 client.upload_snowball_objects(
-    "my-bucket",
-    [
-        SnowballObject("my-object1", filename="/etc/hostname"),
+    bucket_name="my-bucket",
+    objects=[
         SnowballObject(
-            "my-object2", data=io.BytesIO(b"hello"), length=5,
+            object_name="my-object1",
+            filename="/etc/hostname",
         ),
         SnowballObject(
-            "my-object3", data=io.BytesIO(b"world"), length=5,
+            object_name="my-object2",
+            data=io.BytesIO(b"hello"),
+            length=5,
+        ),
+        SnowballObject(
+            object_name="my-object3",
+            data=io.BytesIO(b"world"),
+            length=5,
             mod_time=datetime.now(),
         ),
     ],
