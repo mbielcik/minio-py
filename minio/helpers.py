@@ -26,10 +26,11 @@ import os
 import platform
 import re
 import urllib.parse
+from dataclasses import dataclass
 from datetime import datetime
 from queue import Queue
 from threading import BoundedSemaphore, Thread
-from typing import BinaryIO, Dict, List, Mapping, Tuple, Union
+from typing import BinaryIO, Dict, List, Mapping, Optional, Tuple, Union
 
 from typing_extensions import Protocol
 from urllib3._collections import HTTPHeaderDict
@@ -85,8 +86,8 @@ DictType = Dict[str, Union[str, List[str], Tuple[str]]]
 def quote(
         resource: str,
         safe: str = "/",
-        encoding: str | None = None,
-        errors: str | None = None,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
 ) -> str:
     """
     Wrapper to urllib.parse.quote() replacing back to '~' for older python
@@ -103,8 +104,8 @@ def quote(
 def queryencode(
         query: str,
         safe: str = "",
-        encoding: str | None = None,
-        errors: str | None = None,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
 ) -> str:
     """Encode query parameter value."""
     return quote(query, safe, encoding, errors)
@@ -194,7 +195,7 @@ def read_part_data(
         stream: BinaryIO,
         size: int,
         part_data: bytes = b"",
-        progress: ProgressType | None = None,
+        progress: Optional[ProgressType] = None,
 ) -> bytes:
     """Read part data of given size from stream."""
     size -= len(part_data)
@@ -267,6 +268,16 @@ def check_non_empty_string(string: str | bytes):
         raise TypeError() from exc
 
 
+def check_object_name(object_name: str):
+    """Check whether given object name is valid."""
+    check_non_empty_string(object_name)
+    tokens = object_name.split("/")
+    if "." in tokens or ".." in tokens:
+        raise ValueError(
+            "object name with '.' or '..' path segment is not supported",
+        )
+
+
 def is_valid_policy_type(policy: str | bytes):
     """
     Validate if policy is type str
@@ -283,19 +294,19 @@ def is_valid_policy_type(policy: str | bytes):
     return True
 
 
-def check_ssec(sse: SseCustomerKey | None):
+def check_ssec(sse: Optional[SseCustomerKey]):
     """Check sse is SseCustomerKey type or not."""
     if sse and not isinstance(sse, SseCustomerKey):
         raise ValueError("SseCustomerKey type is required")
 
 
-def check_sse(sse: Sse | None):
+def check_sse(sse: Optional[Sse]):
     """Check sse is Sse type or not."""
     if sse and not isinstance(sse, Sse):
         raise ValueError("Sse type is required")
 
 
-def md5sum_hash(data: str | bytes | None) -> str | None:
+def md5sum_hash(data: Optional[str | bytes]) -> Optional[str]:
     """Compute MD5 of data and return hash as Base64 encoded value."""
     if data is None:
         return None
@@ -311,7 +322,7 @@ def md5sum_hash(data: str | bytes | None) -> str | None:
     return md5sum.decode() if isinstance(md5sum, bytes) else md5sum
 
 
-def sha256_hash(data: str | bytes | None) -> str:
+def sha256_hash(data: Optional[str | bytes]) -> str:
     """Compute SHA-256 of data and return hash as hex encoded value."""
     data = data or b""
     hasher = hashlib.sha256()
@@ -323,12 +334,13 @@ def sha256_hash(data: str | bytes | None) -> str:
 
 
 def url_replace(
+        *,
         url: urllib.parse.SplitResult,
-        scheme: str | None = None,
-        netloc: str | None = None,
-        path: str | None = None,
-        query: str | None = None,
-        fragment: str | None = None,
+        scheme: Optional[str] = None,
+        netloc: Optional[str] = None,
+        path: Optional[str] = None,
+        query: Optional[str] = None,
+        fragment: Optional[str] = None,
 ) -> urllib.parse.SplitResult:
     """Return new URL with replaced properties in given URL."""
     return urllib.parse.SplitResult(
@@ -369,7 +381,7 @@ def _metadata_to_headers(metadata: DictType) -> dict[str, list[str]]:
     }
 
 
-def normalize_headers(headers: DictType | None) -> DictType:
+def normalize_headers(headers: Optional[DictType]) -> DictType:
     """Normalize headers by prefixing 'X-Amz-Meta-' for user metadata."""
     headers = {str(key): value for key, value in (headers or {}).items()}
 
@@ -399,9 +411,9 @@ def normalize_headers(headers: DictType | None) -> DictType:
 
 
 def genheaders(
-        headers: DictType | None,
-        sse: Sse | None,
-        tags: dict[str, str] | None,
+        headers: Optional[DictType],
+        sse: Optional[Sse],
+        tags: Optional[dict[str, str]],
         retention,
         legal_hold: bool,
 ) -> DictType:
@@ -429,8 +441,8 @@ def genheaders(
 def _get_aws_info(
         host: str,
         https: bool,
-        region: str | None,
-) -> tuple[dict | None, str | None]:
+        region: Optional[str],
+) -> tuple[Optional[dict], Optional[str]]:
     """Extract AWS domain information. """
 
     if not _HOSTNAME_REGEX.match(host):
@@ -496,12 +508,12 @@ def _parse_url(endpoint: str) -> urllib.parse.SplitResult:
     if url.scheme.lower() not in ["http", "https"]:
         raise ValueError("scheme in endpoint must be http or https")
 
-    url = url_replace(url, scheme=url.scheme.lower())
+    url = url_replace(url=url, scheme=url.scheme.lower())
 
     if url.path and url.path != "/":
         raise ValueError("path in endpoint is not allowed")
 
-    url = url_replace(url, path="")
+    url = url_replace(url=url, path="")
 
     if url.query:
         raise ValueError("query in endpoint is not allowed")
@@ -524,20 +536,20 @@ def _parse_url(endpoint: str) -> urllib.parse.SplitResult:
             (url.scheme == "http" and url.port == 80) or
             (url.scheme == "https" and url.port == 443)
     ):
-        url = url_replace(url, netloc=host)
+        url = url_replace(url=url, netloc=host)
 
     return url
 
 
 class BaseURL:
     """Base URL of S3 endpoint."""
-    _aws_info: dict | None
+    _aws_info: Optional[dict]
     _virtual_style_flag: bool
     _url: urllib.parse.SplitResult
-    _region: str | None
+    _region: Optional[str]
     _accelerate_host_flag: bool
 
-    def __init__(self, endpoint: str, region: str | None):
+    def __init__(self, endpoint: str, region: Optional[str]):
         url = _parse_url(endpoint)
 
         if region and not _REGION_REGEX.match(region):
@@ -559,7 +571,7 @@ class BaseURL:
             )
 
     @property
-    def region(self) -> str | None:
+    def region(self) -> Optional[str]:
         """Get region."""
         return self._region
 
@@ -579,7 +591,7 @@ class BaseURL:
         return self._aws_info is not None
 
     @property
-    def aws_s3_prefix(self) -> str | None:
+    def aws_s3_prefix(self) -> Optional[str]:
         """Get AWS S3 domain prefix."""
         return self._aws_info["s3_prefix"] if self._aws_info else None
 
@@ -625,9 +637,10 @@ class BaseURL:
     @classmethod
     def _build_aws_url(
             cls,
+            *,
             aws_info: dict,
             url: urllib.parse.SplitResult,
-            bucket_name: str | None,
+            bucket_name: Optional[str],
             enforce_path_style: bool,
             region: str,
     ) -> urllib.parse.SplitResult:
@@ -639,7 +652,7 @@ class BaseURL:
         if host in ["s3-external-1.amazonaws.com",
                     "s3-us-gov-west-1.amazonaws.com",
                     "s3-fips-us-gov-west-1.amazonaws.com"]:
-            return url_replace(url, netloc=host)
+            return url_replace(url=url, netloc=host)
 
         netloc = s3_prefix
         if "s3-accelerate" in s3_prefix:
@@ -657,12 +670,12 @@ class BaseURL:
             netloc += region + "."
         netloc += domain_suffix
 
-        return url_replace(url, netloc=netloc)
+        return url_replace(url=url, netloc=netloc)
 
     def _build_list_buckets_url(
             self,
             url: urllib.parse.SplitResult,
-            region: str | None,
+            region: Optional[str],
     ) -> urllib.parse.SplitResult:
         """Build URL for ListBuckets API."""
         if not self._aws_info:
@@ -675,21 +688,25 @@ class BaseURL:
         if host in ["s3-external-1.amazonaws.com",
                     "s3-us-gov-west-1.amazonaws.com",
                     "s3-fips-us-gov-west-1.amazonaws.com"]:
-            return url_replace(url, netloc=host)
+            return url_replace(url=url, netloc=host)
 
         if s3_prefix.startswith("s3.") or s3_prefix.startswith("s3-"):
             s3_prefix = "s3."
             cn_suffix = ".cn" if domain_suffix.endswith(".cn") else ""
             domain_suffix = f"amazonaws.com{cn_suffix}"
-        return url_replace(url, netloc=f"{s3_prefix}{region}.{domain_suffix}")
+        return url_replace(
+            url=url,
+            netloc=f"{s3_prefix}{region}.{domain_suffix}",
+        )
 
     def build(
             self,
+            *,
             method: str,
             region: str,
-            bucket_name: str | None = None,
-            object_name: str | None = None,
-            query_params: DictType | None = None,
+            bucket_name: Optional[str] = None,
+            object_name: Optional[str] = None,
+            query_params: Optional[DictType] = None,
     ) -> urllib.parse.SplitResult:
         """Build URL for given information."""
         if not bucket_name and object_name:
@@ -697,7 +714,7 @@ class BaseURL:
                 f"empty bucket name for object name {object_name}",
             )
 
-        url = url_replace(self._url, path="/")
+        url = url_replace(url=self._url, path="/")
 
         query = []
         for key, values in sorted((query_params or {}).items()):
@@ -706,7 +723,7 @@ class BaseURL:
                 f"{queryencode(key)}={queryencode(value)}"
                 for value in sorted(values)
             ]
-        url = url_replace(url, query="&".join(query))
+        url = url_replace(url=url, query="&".join(query))
 
         if not bucket_name:
             return self._build_list_buckets_url(url, region)
@@ -725,7 +742,12 @@ class BaseURL:
 
         if self._aws_info:
             url = BaseURL._build_aws_url(
-                self._aws_info, url, bucket_name, enforce_path_style, region)
+                aws_info=self._aws_info,
+                url=url,
+                bucket_name=bucket_name,
+                enforce_path_style=enforce_path_style,
+                region=region,
+            )
 
         netloc = url.netloc
         path = "/"
@@ -737,64 +759,19 @@ class BaseURL:
         if object_name:
             path += ("" if path.endswith("/") else "/") + quote(object_name)
 
-        return url_replace(url, netloc=netloc, path=path)
+        return url_replace(url=url, netloc=netloc, path=path)
 
 
+@dataclass(frozen=True)
 class ObjectWriteResult:
     """Result class of any APIs doing object creation."""
-
-    def __init__(
-            self,
-            bucket_name: str,
-            object_name: str,
-            version_id: str | None,
-            etag: str | None,
-            http_headers: HTTPHeaderDict,
-            last_modified: datetime | None = None,
-            location: str | None = None,
-    ):
-        self._bucket_name = bucket_name
-        self._object_name = object_name
-        self._version_id = version_id
-        self._etag = etag
-        self._http_headers = http_headers
-        self._last_modified = last_modified
-        self._location = location
-
-    @property
-    def bucket_name(self) -> str:
-        """Get bucket name."""
-        return self._bucket_name
-
-    @property
-    def object_name(self) -> str:
-        """Get object name."""
-        return self._object_name
-
-    @property
-    def version_id(self) -> str | None:
-        """Get version ID."""
-        return self._version_id
-
-    @property
-    def etag(self) -> str | None:
-        """Get etag."""
-        return self._etag
-
-    @property
-    def http_headers(self) -> HTTPHeaderDict:
-        """Get HTTP headers."""
-        return self._http_headers
-
-    @property
-    def last_modified(self) -> datetime | None:
-        """Get last-modified time."""
-        return self._last_modified
-
-    @property
-    def location(self) -> str | None:
-        """Get location."""
-        return self._location
+    bucket_name: str
+    object_name: str
+    version_id: Optional[str]
+    etag: Optional[str]
+    http_headers: HTTPHeaderDict
+    last_modified: Optional[datetime] = None
+    location: Optional[str] = None
 
 
 class Worker(Thread):
@@ -819,18 +796,19 @@ class Worker(Thread):
             if not task:
                 self._tasks_queue.task_done()
                 break
+            func, args, kargs, cleanup_func = task
             # No exception detected in any thread,
             # continue the execution.
             if self._exceptions_queue.empty():
-                # Execute the task
-                func, args, kargs, cleanup_func = task
                 try:
                     result = func(*args, **kargs)
                     self._results_queue.put(result)
                 except Exception as ex:  # pylint: disable=broad-except
                     self._exceptions_queue.put(ex)
-                finally:
-                    cleanup_func()
+
+            # call cleanup i.e. Semaphore.release irrespective of task
+            # execution to avoid race condition.
+            cleanup_func()
             # Mark this task as done, whether an exception happened or not
             self._tasks_queue.task_done()
 

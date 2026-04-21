@@ -19,7 +19,7 @@
 from __future__ import absolute_import, annotations
 
 import io
-from typing import Type, TypeVar
+from typing import Optional, Type, TypeVar
 from xml.etree import ElementTree as ET
 
 from typing_extensions import Protocol
@@ -36,7 +36,7 @@ def Element(  # pylint: disable=invalid-name
 
 
 def SubElement(  # pylint: disable=invalid-name
-    parent: ET.Element, tag: str, text: str | None = None
+    parent: ET.Element, tag: str, text: Optional[str] = None
 ) -> ET.Element:
     """Create ElementTree.SubElement on parent with tag and text."""
     element = ET.SubElement(parent, tag)
@@ -60,17 +60,16 @@ def _get_namespace(element: ET.Element) -> str:
 def findall(element: ET.Element, name: str) -> list[ET.Element]:
     """Namespace aware ElementTree.Element.findall()."""
     namespace = _get_namespace(element)
-    return element.findall(
-        "ns:" + name if namespace else name,
-        {"ns": namespace} if namespace else {},
-    )
+    if namespace:
+        name = "/".join(["ns:" + token for token in name.split("/")])
+    return element.findall(name, {"ns": namespace} if namespace else {})
 
 
 def find(
         element: ET.Element,
         name: str,
         strict: bool = False,
-) -> ET.Element | None:
+) -> Optional[ET.Element]:
     """Namespace aware ElementTree.Element.find()."""
     namespace = _get_namespace(element)
     elem = element.find(
@@ -86,7 +85,7 @@ def findtext(
     element: ET.Element,
     name: str,
     strict: bool = False,
-) -> str | None:
+) -> Optional[str]:
     """
     Namespace aware ElementTree.Element.findtext() with strict flag
     raises ValueError if element name not exist.
@@ -128,7 +127,7 @@ def getbytes(element: ET.Element) -> bytes:
 class ToXmlType(Protocol):
     """typing stub for class with `toxml` method"""
 
-    def toxml(self, element: ET.Element | None) -> ET.Element:
+    def toxml(self, element: Optional[ET.Element]) -> ET.Element:
         """Convert python object to ElementTree.Element."""
 
 
